@@ -1,39 +1,57 @@
-name: Build Flutter APK
+name: Build Android APK
 
 on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK
+    name: 🏗️ Build & Package APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: 🔍 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: ☕ Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: stable
-          channel: stable
-          cache: true
+      - name: 🐘 Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Get dependencies
-        run: flutter pub get
+      - name: 🔧 Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: 🔨 Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK artifact
+      - name: 📤 Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
+
+      - name: ✨ Generate Pretty Build Summary
+        if: always()
+        run: |
+          echo "## 🚀 Build Status: ${{ job.status == 'success' && '✅ SUCCESS' || '❌ FAILED' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Detail Informasi Build" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Informasi |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Repository** | \`${{ github.repository }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit SHA** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Triggered By** | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; stream
+            echo "📦 **APK Debug berhasil dibuat!** Silakan unduh berkas melalui tab **Artifacts** di atas." >> $GITHUB_STEP_SUMMARY
+          fi
