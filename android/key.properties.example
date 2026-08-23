@@ -1,0 +1,8 @@
+# Salin file ini menjadi "key.properties" (tanpa .example) di folder android/
+# setelah Anda membuat keystore sendiri. JANGAN commit file key.properties asli
+# ke Git / upload ke tempat publik karena berisi password.
+
+storePassword=ISI_PASSWORD_KEYSTORE
+keyPassword=ISI_PASSWORD_KEY
+keyAlias=gaaftbll
+storeFile=../gaaftbll-release.jks
